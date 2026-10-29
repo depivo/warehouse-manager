@@ -1,10 +1,10 @@
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 from warehause_manager.database import get_db
-from warehause_manager.schemas import ProductCreate, ProductRead, ProductUpdate
+from warehause_manager.schemas import ProductCreate, ProductRead, ProductUpdate, ProductStock
 from warehause_manager.services import (create_product, get_products,
                                         get_product_by_id, update_product,
-                                        delete_product)
+                                        delete_product, change_stock)
 
 router = APIRouter(
     prefix="/products",
@@ -14,6 +14,16 @@ router = APIRouter(
 @router.post("/", response_model=ProductRead, status_code=status.HTTP_201_CREATED)
 def create_new_product(data: ProductCreate, db: Session = Depends(get_db)):
     return create_product(db, data)
+
+
+@router.post("/{product_id}/stock", response_model=ProductRead, status_code=status.HTTP_200_OK)
+def update_stock(product_id: int, data: ProductStock, db: Session = Depends(get_db)):
+    product = change_stock(db, data, product_id)
+    if product is None:
+        raise HTTPException(status_code=404, detail="Product not found")
+    if product is False:
+        raise HTTPException(status_code=400, detail="Quantity cannot be negative")
+    return product
 
 
 @router.get("/", response_model=list[ProductRead])

@@ -71,3 +71,34 @@ def test_delete_missing_product_returns_404(client):
     response = client.delete("/products/999")
 
     assert response.status_code == 404
+
+
+def test_update_stock_add(client):
+    created = create_sample(client, quantity=10)
+
+    response = client.post(f"/products/{created['id']}/stock", json={"change": 5})
+    
+    assert response.status_code == 200
+    assert response.json()["quantity"] == 15
+
+
+def test_update_stock_remove(client):
+    created = create_sample(client, quantity=10)
+    response = client.post(f"/products/{created['id']}/stock", json={"change": -3})
+
+    assert response.status_code == 200
+    assert response.json()["quantity"] == 7
+
+
+def test_update_stock_negative(client):
+    created = create_sample(client, quantity=10)
+    response = client.post(f"/products/{created['id']}/stock", json={"change": -11})
+    
+    assert response.status_code == 400
+
+
+def test_update_stock_not(client):
+    created = create_sample(client, quantity=10)
+    response = client.post(f"/products/999/stock", json={"change": 10})
+    
+    assert response.status_code == 404

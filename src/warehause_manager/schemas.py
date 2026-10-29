@@ -17,3 +17,6 @@ class ProductRead(BaseModel):
     comment: str | None = None
 
     model_config = ConfigDict(from_attributes=True)
+
+class ProductStock(BaseModel):
+    change: int
